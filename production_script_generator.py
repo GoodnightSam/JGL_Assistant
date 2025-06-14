@@ -47,25 +47,55 @@ class ProductionScriptGenerator:
     # Script generation prompt template
     SCRIPT_PROMPT_TEMPLATE = """You are writing a 5-minute biography video for **{actor_name}**.
 
-GLOBAL RULES  
-• 780–830 words (≈5 min @ 155 wpm).  
-• Action beats in historical-present; context may use past but never mix tenses in one sentence.  
-• Voice = confident "sports-doc storyteller": punchy, nostalgic, dry-witty; no Gen-Z slang.  
-• 8-10 explicit year stamps inside the narration (not year-by-year); vary with age references ("at 32"), time periods ("late 1990s"), and mention the actor's age at least twice.  
-• Around the 80–90-second mark, drop a short tension-raising **question**—ask it plainly; never label it.  
-• Weave one humorous callback in each later act.  
-• **Output only the words the narrator speaks**—no outros, CTAs, visuals, music cues, section headers, timelines, or tables.
+========================  GLOBAL STORY GUIDELINES  ========================
+1.  WORD COUNT & PACE  
+   • 780–830 words (≈5 min @ 155 wpm).  
+2.  TENSE RULE  
+   • Action beats in historical-present ("he knocks," "she wins"); background may use past, **but never mix tenses in one sentence**.  
+3.  VOICE & TARGET DEMO  
+   • Confident "sports-doc storyteller": punchy, nostalgic, dry-witty.  
+   • Lean on era-flavored verbs & metaphors that resonate with 45- to 65-year-olds; **no Gen-Z slang**.  
+4.  DATES & AGES  
+   • **Use 6–9 explicit year stamps** total, spread out—**max one date OR one age per sentence**.  
+   • Reference the actor's age at least twice ("at 32," "now 47").  
+5.  SUSPENSE MOMENT  
+   • Around the 80–90 s mark, insert a naturally arising **question** that tees up tension; **do not label it** as a cliff-hanger.  
+6.  CALLBACK ENGINE  
+   • Choose a single tangible motif (prop, catch-phrase, vehicle). Mention it once early, then **exactly 3 humorous or poignant callbacks** later—each stronger than the last.  
+7.  EMOTIONAL TRIP-WIRE  
+   • End with a 1- or 2-sentence legacy reflection that references the motif and stirs quiet emotion. No outros, CTAs, or brand names.  
+8.  LANGUAGE MUSIC  
+   • Vary sentence lengths—staccato punch followed by a medium beat, then an occasional lyrical line.  
+9.  OUTPUT SANITATION  
+   • Narration only. No visuals, tables, scene headings, timelines, sound cues, or formatting notes beyond what is defined below.
 
-OUTPUT MARKDOWN FORMAT (exactly):  
+========================  OUTPUT MARKDOWN FORMAT  ========================
 
 **{actor_name} — 5-MINUTE BIO SCRIPT (~XXX words)**  
 
 **HOOK**  
 Fragment. Fragment. Fragment. And [surprise facet].  
-{actor_name}'s [metaphor or superlative tied to a signature role]. **[Imperative callback, 2–4 words—verb-first, no pronouns], and let's get rollin'.**
+{actor_name}'s [metaphor or superlative tied to a signature role]. **[Imperative callback — verb-first, 2–4 words from an iconic prop / phrase / setting], and let's get rollin'.**
 
 **BIO**  
-(Full narration here in continuous paragraphs—birth to present-day epilogue. No additional headings.)"""
+(Continuous paragraphs—birth to present-day epilogue; follow all guidelines above.)
+
+=========================================================================
+
+HOW TO PICK THE IMPERATIVE CALLBACK  
+• Must start with a verb ("Spin the rotor," "Prime the proton pack," "Dust off the Stetson").  
+• 2 – 4 words, no pronouns, ends with a comma so it flows: "…[callback], and let's get rollin'."  
+• Anchor it to the actor's most recognizable prop, vehicle, or genre.
+
+REMINDER CHECKLIST (self-verify before output)  
+☐ 780–830 words  
+☐ 6–9 year stamps, never >1 per sentence  
+☐ ≥2 age mentions  
+☐ Natural tension-raising question ~80-90 s  
+☐ Single motif with 3 callbacks  
+☐ Imperative callback flows into "…and let's get rollin'."  
+☐ Emotional legacy close, no outros or brand plugs  
+☐ Only spoken narration appears in final output"""
     
     # Configuration
     DEFAULT_MODEL = "o3-2025-04-16"
@@ -186,11 +216,13 @@ Fragment. Fragment. Fragment. And [surprise facet].
         if actor_name not in output:
             issues.append("Actor name not found in script")
         
-        # Check for year stamps (should have at least 8)
+        # Check for year stamps (should have 6-9)
         year_pattern = r'\b(19\d{2}|20\d{2})\b'
         years_found = len(re.findall(year_pattern, output))
-        if years_found < 8:
-            issues.append(f"Insufficient year stamps: {years_found} < 8")
+        if years_found < 6:
+            issues.append(f"Insufficient year stamps: {years_found} < 6")
+        elif years_found > 9:
+            issues.append(f"Too many year stamps: {years_found} > 9")
         
         return len(issues) == 0, issues
     
