@@ -51,7 +51,7 @@ GLOBAL RULES
 • 780–830 words (≈5 min @ 155 wpm).  
 • Action beats in historical-present; context may use past but never mix tenses in one sentence.  
 • Voice = confident "sports-doc storyteller": punchy, nostalgic, dry-witty; no Gen-Z slang.  
-• ≥ 8 explicit year stamps inside the narration; mention the actor's age at least twice.  
+• 8-10 explicit year stamps inside the narration (not year-by-year); vary with age references ("at 32"), time periods ("late 1990s"), and mention the actor's age at least twice.  
 • Around the 80–90-second mark, drop a short tension-raising **question**—ask it plainly; never label it.  
 • Weave one humorous callback in each later act.  
 • **Output only the words the narrator speaks**—no outros, CTAs, visuals, music cues, section headers, timelines, or tables.
