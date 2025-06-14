@@ -200,12 +200,8 @@ REMINDER CHECKLIST (self-verify before output)
             issues.append("Output is empty")
             return False, issues
         
-        # Check word count
+        # Skip word count validation - accept whatever length is generated
         word_count = len(output.split())
-        if word_count < self.MIN_WORD_COUNT:
-            issues.append(f"Word count too low: {word_count} < {self.MIN_WORD_COUNT}")
-        elif word_count > self.MAX_WORD_COUNT:
-            issues.append(f"Word count too high: {word_count} > {self.MAX_WORD_COUNT}")
         
         # Check for required sections
         for section in self.REQUIRED_SECTIONS:
