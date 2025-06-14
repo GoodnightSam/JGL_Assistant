@@ -1,12 +1,14 @@
 # JGL Assistant - AI-Powered Biography Script Generator
 
-An AI-powered tool for generating professional biography scripts for YouTube videos using OpenAI's o3 model.
+An AI-powered tool for generating professional biography scripts for YouTube videos using OpenAI's o3 model, with automatic phonetic conversion for text-to-speech (TTS) systems.
 
 ## Features
 
 - Generates 5-minute biography scripts (780-830 words)
+- Automatic phonetic conversion for ElevenLabs TTS compatibility
 - Professional sports-documentary storytelling style
 - Structured format with HOOK and BIO sections
+- Converts difficult proper nouns to phonetic spelling
 - Automatic validation and error handling
 - Cost estimation per script
 - Simple command-line interface
@@ -49,9 +51,10 @@ python main.py
 
 The app will:
 1. Ask for an actor's name
-2. Generate a biography script
-3. Save it as a text file in `output/scripts/`
-4. Show cost estimation
+2. Generate a biography script using o3 model
+3. Generate a phonetic version for TTS using gpt-4o-mini
+4. Save both versions as text files in `output/scripts/`
+5. Show cost estimation
 
 Type 'quit' to exit the application.
 
@@ -71,20 +74,22 @@ Scripts include:
 JGL_Assistant/
 ├── main.py                    # Main application entry point
 ├── production_script_generator.py  # Script generation logic
+├── phonetic_generator.py      # Phonetic conversion for TTS
 ├── requirements.txt           # Python dependencies
 ├── .env                      # API key configuration (not in git)
 ├── .gitignore               # Git ignore file
 ├── output/                  # Generated scripts
-│   └── scripts/            # Text files
+│   └── scripts/            # Text files (original & phonetic)
 └── dev/                    # Development files
     └── llm/               # JSON backups
 ```
 
 ## Cost
 
-Approximate cost per script using o3 model:
-- ~$0.01-0.02 per script
-- Based on ~285 input tokens and ~1,250 output tokens
+Approximate cost per actor:
+- Original script (o3 model): ~$0.01-0.02
+- Phonetic script (gpt-4o-mini): ~$0.001
+- Total: ~$0.02 per complete script set
 
 ## License
 
