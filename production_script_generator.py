@@ -23,9 +23,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Suppress httpx INFO logs (OpenAI SDK HTTP requests)
-logging.getLogger("httpx").setLevel(logging.WARNING)
-
 
 class ScriptGenerationError(Exception):
     """Custom exception for script generation errors."""

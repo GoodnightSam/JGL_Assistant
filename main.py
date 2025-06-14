@@ -6,7 +6,6 @@ Main entry point for the application.
 
 import os
 import sys
-import logging
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -15,9 +14,6 @@ from phonetic_generator import PhoneticScriptGenerator
 
 # Load environment variables
 load_dotenv()
-
-# Suppress httpx INFO logs
-logging.getLogger("httpx").setLevel(logging.WARNING)
 
 # Constants
 OUTPUT_DIR = "output"
