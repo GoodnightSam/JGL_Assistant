@@ -11,9 +11,8 @@ __pycache__/
 
 # Generated Content
 output/
-dev/llm/
-dev/script_*.json
-dev/o3_script_*.json
+dev/llm/*.json
+dev/llm/*.log
 *.log
 
 # IDE
