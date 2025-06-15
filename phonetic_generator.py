@@ -51,7 +51,7 @@ OUTPUT: The exact same script with ONLY the necessary proper nouns converted to 
         """Initialize the phonetic generator with available model."""
         # Try different model options
         self.model_options = [
-            "gpt-4o-mini",
+            "o4-mini",
             "gpt-4o",
             "o3-mini-2025-01-31",
             "gpt-4-turbo"

@@ -5,7 +5,8 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Tuple
 from pathlib import Path
-from agents import Agent, Runner
+from agents import Agent, Runner, ModelSettings
+from openai.types.shared import Reasoning
 from dotenv import load_dotenv
 import re
 
@@ -61,13 +62,19 @@ class ProductionScriptGenerator:
 5.  SUSPENSE MOMENT  
    • Around the 80–90 s mark, insert a naturally arising **question** that tees up tension; **do not label it** as a cliff-hanger.  
 6.  CALLBACK ENGINE  
-   • Choose a single tangible motif (prop, catch-phrase, vehicle). Mention it once early, then **exactly 3 humorous or poignant callbacks** later—each stronger than the last.  
-7.  EMOTIONAL TRIP-WIRE  
+   • Choose a single tangible motif (prop, catch-phrase, vehicle). Mention it once early, then **exactly 3 humorous or poignant callbacks** later—each stronger than the last.
+   • CRITICAL: Never use labels like "Callback 1:" or "Callback 2:" - weave the motif naturally into the narrative without any meta-commentary.  
+7.  REALISM CLAUSE  
+   • Include at least **one significant personal flaw, controversy, or low-point** and show one repercussion—handle it candidly, without demonising.  
+8.  EMOTIONAL TRIP-WIRE  
    • End with a 1- or 2-sentence legacy reflection that references the motif and stirs quiet emotion. No outros, CTAs, or brand names.  
-8.  LANGUAGE MUSIC  
+9.  FACTUAL SAFETY  
+   • Use **only widely documented facts**. If uncertain, write «???» so editors can verify.  
+10. LANGUAGE MUSIC  
    • Vary sentence lengths—staccato punch followed by a medium beat, then an occasional lyrical line.  
-9.  OUTPUT SANITATION  
-   • Narration only. No visuals, tables, scene headings, timelines, sound cues, or formatting notes beyond what is defined below.
+11. OUTPUT SANITATION  
+   • Narration only. No visuals, tables, scene headings, timelines, sound cues, labels (like "Callback 1:"), or ANY formatting notes beyond what is defined below.
+   • The BIO section should contain ONLY the words the narrator will speak - no meta-commentary or structural labels.
 
 ========================  OUTPUT MARKDOWN FORMAT  ========================
 
@@ -93,8 +100,10 @@ REMINDER CHECKLIST (self-verify before output)
 ☐ ≥2 age mentions  
 ☐ Natural tension-raising question ~80-90 s  
 ☐ Single motif with 3 callbacks  
+☐ At least one candid flaw/controversy + consequence  
 ☐ Imperative callback flows into "…and let's get rollin'."  
 ☐ Emotional legacy close, no outros or brand plugs  
+☐ «???» inserted wherever factual certainty < 90 %  
 ☐ Only spoken narration appears in final output"""
     
     # Configuration
@@ -141,12 +150,18 @@ REMINDER CHECKLIST (self-verify before output)
     def _initialize_agent(self):
         """Initialize the AI agent with error handling."""
         try:
+            # Configure high reasoning effort
+            model_settings = ModelSettings(
+                reasoning=Reasoning(effort="high")
+            )
+            
             self.agent = Agent(
                 name="ScriptWriter",
                 model=self.model_name,
-                instructions="You are an expert biography script writer for YouTube videos. Follow the exact formatting and rules provided in each request."
+                instructions="You are an expert biography script writer for YouTube videos. Follow the exact formatting and rules provided in each request.",
+                model_settings=model_settings
             )
-            logger.info(f"Successfully initialized agent with model: {self.model_name}")
+            logger.info(f"Successfully initialized agent with model: {self.model_name} (reasoning effort: high)")
         except Exception as e:
             logger.error(f"Failed to initialize agent: {e}")
             raise APIError(f"Could not initialize agent with model {self.model_name}: {str(e)}")
@@ -326,6 +341,22 @@ REMINDER CHECKLIST (self-verify before output)
             result = Runner.run_sync(self.agent, prompt)
             output = result.final_output
             
+            # Extract token usage from result if available
+            usage_data = {}
+            if hasattr(result, 'context_wrapper') and result.context_wrapper and hasattr(result.context_wrapper, 'usage'):
+                usage = result.context_wrapper.usage
+                usage_data = {
+                    'input_tokens': getattr(usage, 'input_tokens', None),
+                    'output_tokens': getattr(usage, 'output_tokens', None),
+                    'total_tokens': getattr(usage, 'total_tokens', None)
+                }
+                
+                # Check for reasoning tokens in output details
+                if hasattr(usage, 'output_tokens_details') and usage.output_tokens_details:
+                    usage_data['reasoning_tokens'] = getattr(usage.output_tokens_details, 'reasoning_tokens', 0)
+                else:
+                    usage_data['reasoning_tokens'] = 0
+            
             # Parse sections
             sections = self._parse_script_sections(output)
             
@@ -347,7 +378,9 @@ REMINDER CHECKLIST (self-verify before output)
                 "timestamp": datetime.now().isoformat(),
                 "success": True,
                 "valid": is_valid,
-                "validation_issues": validation_issues if not is_valid else None
+                "validation_issues": validation_issues if not is_valid else None,
+                "usage": usage_data if usage_data else None,
+                "reasoning_effort": "high"
             }
             
             # Add individual sections if parsed
@@ -499,9 +532,18 @@ REMINDER CHECKLIST (self-verify before output)
         Returns:
             Dictionary with cost breakdown
         """
-        # Token estimates
-        input_tokens = 285  # Approximate prompt size
-        output_tokens = script_data.get("word_count", 800) * 1.5
+        # Use actual token data if available, otherwise estimate
+        usage = script_data.get("usage", {})
+        
+        if usage and usage.get("input_tokens") and usage.get("output_tokens"):
+            input_tokens = usage["input_tokens"]
+            output_tokens = usage["output_tokens"]
+            reasoning_tokens = usage.get("reasoning_tokens", 0)
+        else:
+            # Token estimates
+            input_tokens = 285  # Approximate prompt size
+            output_tokens = script_data.get("word_count", 800) * 1.5
+            reasoning_tokens = 0
         
         # Model-specific pricing
         if "o3-mini" in self.model_name:
@@ -519,6 +561,7 @@ REMINDER CHECKLIST (self-verify before output)
         return {
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
+            "reasoning_tokens": reasoning_tokens,
             "input_cost": input_cost,
             "output_cost": output_cost,
             "total_cost": total_cost,

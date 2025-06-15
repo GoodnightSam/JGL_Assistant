@@ -1,0 +1,4 @@
+1) Taking everything we've worked on since the last document and git update, I want you to think deeply about what needs to be updated in TASKS.md file and other main .md files that exist for this project and are integral for this project (i.e PRD, CLAUDE, README, CONTEXT, etc.). What needs to be updated? What needs to be removed? What needs to be added? 
+2) Then go update those documents. 
+3) When you have finished updating those documents, I then want you to do GIT Commit with expert notes as to the changes since the last commit, then PUSH IT to git.
+4) And then sync the remote origin to the recently pushed commit.

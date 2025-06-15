@@ -3,13 +3,15 @@
 ## Overview
 Analyzing the cost implications of different approaches for the script generation agent.
 
+**Last Updated**: June 15, 2025 - Now with actual production data!
+
 ## Key Considerations
 
-### 1. Token Usage Breakdown
-- **Script Prompt**: ~280 tokens (the instructions you provided)
-- **Actor Name Variable**: ~5-10 tokens
-- **Expected Output**: ~800-850 words ≈ 1,200-1,300 tokens
-- **Total per request**: ~1,500-1,600 tokens
+### 1. Actual Token Usage (from Production)
+- **Input tokens**: ~2,700 (includes full prompt + system instructions)
+- **Output tokens**: 1,000-3,000 (varies by script complexity)
+- **Reasoning tokens**: ~180% of output tokens (with high reasoning effort)
+- **Total per request**: 3,700-8,000 tokens
 
 ### 2. Cost Comparison
 
@@ -58,17 +60,35 @@ The SDK doesn't inherently save tokens by storing instructions. Each API call st
 
 ## Cost Calculations
 
-Assuming o3-mini pricing (hypothetical, as actual pricing not yet announced):
-- If similar to GPT-4o-mini: ~$0.15/1M input tokens, $0.60/1M output tokens
+### Actual o3 Pricing (as of June 2025)
+- **o3 model**: $2/1M input tokens, $8/1M output tokens
+- **o4-mini**: ~$1/1M input tokens, ~$4/1M output tokens
 
-Per script:
-- Full prompt: ~285 input + 1,250 output tokens
-- Cost: ~$0.001 per script
+### Real Production Costs
 
-At scale (1,000 scripts/month):
-- Full prompt method: ~$1.00/month
-- Optimized method: ~$0.30/month
-- Savings: ~$0.70/month or 70%
+#### Script Generation (o3 with high reasoning):
+- Input: 2,700 tokens × $2/1M = $0.0054
+- Output: 3,000 tokens × $8/1M = $0.024
+- **Total per script**: $0.013-$0.016
+
+#### Phonetic Conversion (o4-mini):
+- Input: ~1,000 tokens × $1/1M = $0.001
+- Output: ~1,000 tokens × $4/1M = $0.004
+- **Total per phonetic**: ~$0.001
+
+#### Combined Cost per Actor:
+- **Total: $0.014-$0.017 per complete script set**
+
+### At Scale (1,000 scripts/month):
+- Script generation: ~$15/month
+- Phonetic conversion: ~$1/month
+- **Total monthly cost: ~$16**
+
+### Cost Optimization Insights:
+1. **Reasoning tokens are expensive**: ~180% of output tokens
+2. **High reasoning worth it**: Better quality scripts, fewer retries
+3. **o4-mini efficient**: Good balance for phonetic conversion
+4. **Folder system saves money**: Reuse existing scripts when possible
 
 ## Next Steps
 

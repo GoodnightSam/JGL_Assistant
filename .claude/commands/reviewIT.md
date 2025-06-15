@@ -1,0 +1,4 @@
+1) Consider what we've done during this conversation deeply. 
+2) Review what you know from our PRD, README, and other tasks. 
+3) Is there anything we could have done better in this last batch of completed tasks to prevent future problems and/or make future steps easier?
+4) List those things that we should probably do to make this implementation better and them add them as the next todo's on our TASKS.md and then update any other important MD files that exist for this project that would be smart to update (i.e. PRD, README, CLAUDE, CONTEXT files) so the next developer who starts on the tasks will know exactly what needs to be done.

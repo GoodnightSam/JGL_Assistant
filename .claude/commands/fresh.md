@@ -1,0 +1,1 @@
+Go look at the PRD, CLAUDE, and TASKS md files, and become intimately aware of our project. Go confirm that our Vercel app is running on the most recent version using the MCP server for the Vercel (or CLI as a backup). Then tell me what are the next 3 things that we should be working on.
