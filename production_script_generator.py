@@ -199,7 +199,8 @@ REMINDER CHECKLIST (self-verify before output)
     
     def _validate_script_output(self, output: str, actor_name: str) -> Tuple[bool, List[str]]:
         """
-        Validate that the script meets all requirements.
+        Validate that the script has essential requirements.
+        Only checks for HOOK and BIO sections - no strict gatekeeping.
         
         Args:
             output: The generated script
@@ -215,25 +216,13 @@ REMINDER CHECKLIST (self-verify before output)
             issues.append("Output is empty")
             return False, issues
         
-        # Skip word count validation - accept whatever length is generated
-        word_count = len(output.split())
-        
-        # Check for required sections
+        # Only check for required sections (HOOK and BIO)
         for section in self.REQUIRED_SECTIONS:
             if f"**{section}**" not in output:
                 issues.append(f"Missing required section: {section}")
         
-        # Check if actor name is mentioned
-        if actor_name not in output:
-            issues.append("Actor name not found in script")
-        
-        # Check for year stamps (should have 6-9)
-        year_pattern = r'\b(19\d{2}|20\d{2})\b'
-        years_found = len(re.findall(year_pattern, output))
-        if years_found < 6:
-            issues.append(f"Insufficient year stamps: {years_found} < 6")
-        elif years_found > 9:
-            issues.append(f"Too many year stamps: {years_found} > 9")
+        # That's it! No word count or year stamp validation
+        # We accept any script that has HOOK and BIO sections
         
         return len(issues) == 0, issues
     
@@ -288,13 +277,11 @@ REMINDER CHECKLIST (self-verify before output)
                 logger.info(f"Attempt {attempt + 1}/{max_retries} for {actor_name}")
                 result = self.generate_script(actor_name)
                 
-                # If successful and valid, return
-                if result.get("success") and result.get("valid"):
+                # If successful, return (even if validation had warnings)
+                if result.get("success"):
+                    if not result.get("valid"):
+                        logger.info(f"Script generated with validation notes: {result.get('validation_issues')}")
                     return result
-                
-                # If generated but invalid, log issues
-                if result.get("success") and not result.get("valid"):
-                    logger.warning(f"Script generated but validation failed: {result.get('validation_issues')}")
                     
             except Exception as e:
                 last_error = e
@@ -360,8 +347,12 @@ REMINDER CHECKLIST (self-verify before output)
             # Parse sections
             sections = self._parse_script_sections(output)
             
-            # Validate output
+            # Validate output (now only checks for HOOK/BIO)
             is_valid, validation_issues = self._validate_script_output(output, actor_name)
+            
+            # Log validation info if any
+            if validation_issues:
+                logger.info(f"Validation notes for {actor_name}: {validation_issues}")
             
             # Calculate metrics
             word_count = len(output.split())

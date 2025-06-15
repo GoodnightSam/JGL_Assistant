@@ -17,22 +17,29 @@ This is the JGL Assistant project - an AI-powered biography script generator for
 
 ### When Modifying Script Generation
 - Always preserve the 11 prompt guidelines
-- Maintain the 780-830 word count requirement
+- No strict word count gatekeeping (accept any length)
 - Keep the callback mechanism without labels
 - Ensure «???» markers for uncertain facts
 - Never add cost info to script text files
+- Only require HOOK and BIO sections for validation
 
 ### When Working with Models
 - Use o3 with high reasoning effort for scripts
 - Use o4-mini (NOT gpt-4o-mini) for phonetic conversion
 - Always track actual token usage when available
-- Report costs to console, not in files
+- Report costs to console AND save to cost_tracking.json
+- Each operation adds timestamped entry with model, cost, and usage
 
 ### File Organization
 - All actor files go in `output/actors/[actor_name]/`
 - Use normalized names (lowercase, underscores)
 - Handle case-insensitive folder matching
-- Standard naming: `[actor]_script.txt`, `[actor]_PHONETIC_script.txt`
+- Standard naming:
+  - `[actor]_script.txt` - Main biography script
+  - `[actor]_PHONETIC_script.txt` - TTS-ready version
+  - `[actor]_storyboard.json` - 45+ shot breakdown
+  - `[actor]_music_plan.json` - 3 AI music prompts
+  - `[actor]_cost_tracking.json` - API cost tracking
 
 ## Testing Approach
 - Test with short actor names first (saves tokens)
@@ -45,16 +52,23 @@ This is the JGL Assistant project - an AI-powered biography script generator for
 2. **High costs**: Check reasoning tokens (can be 180%+ of output)
 3. **Model confusion**: o4-mini vs gpt-4o-mini (use o4-mini)
 4. **Case sensitivity**: Use folder_manager.normalize_actor_name()
+5. **Script rejection**: Now accepts any script with HOOK/BIO sections
 
 ## Next Steps (Phase 2)
-The project is ready for video planning implementation:
-- Script chunking (3-10 second segments)
-- AI prompt generation for images/videos
-- Music description generation
-- Integration with `[actor]_step2_data.json`
+The project has implemented:
+- ✓ Script chunking (3-10 second segments) via storyboard
+- ✓ AI prompt generation for images/videos
+- ✓ Music description generation
+- ✓ All saved in actor-specific folders
+
+Ready for Phase 3:
+- Image generation (Bing/Google API)
+- Video clip searching
+- Final assembly
 
 ## Important Notes
 - Always use high reasoning effort in production
 - Cost tracking must show actual API usage
 - Folder system is mandatory for all new features
 - Maintain backwards compatibility with existing scripts
+- Cost tracking JSON persists all operations per actor

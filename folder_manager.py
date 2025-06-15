@@ -151,5 +151,43 @@ class ActorFolderManager:
             "script": os.path.join(actor_folder, f"{normalized_name}_script.txt"),
             "phonetic": os.path.join(actor_folder, f"{normalized_name}_PHONETIC_script.txt"),
             "json": os.path.join(actor_folder, f"{normalized_name}_script_data.json"),
-            "step2": os.path.join(actor_folder, f"{normalized_name}_step2_data.json")  # For future use
+            "storyboard": os.path.join(actor_folder, f"{normalized_name}_storyboard.json"),
+            "music_plan": os.path.join(actor_folder, f"{normalized_name}_music_plan.json"),
+            "cost_tracking": os.path.join(actor_folder, f"{normalized_name}_cost_tracking.json")
         }
+    
+    def get_latest_storyboard(self, actor_name: str) -> Optional[str]:
+        """
+        Get the latest storyboard for an actor.
+        
+        Args:
+            actor_name: The actor's name
+            
+        Returns:
+            Path to storyboard file or None
+        """
+        paths = self.get_script_paths(actor_name)
+        storyboard_path = paths['storyboard']
+        
+        if os.path.exists(storyboard_path):
+            return storyboard_path
+        
+        return None
+    
+    def get_latest_music_plan(self, actor_name: str) -> Optional[str]:
+        """
+        Get the latest music plan for an actor.
+        
+        Args:
+            actor_name: The actor's name
+            
+        Returns:
+            Path to music plan file or None
+        """
+        paths = self.get_script_paths(actor_name)
+        music_plan_path = paths['music_plan']
+        
+        if os.path.exists(music_plan_path):
+            return music_plan_path
+        
+        return None
