@@ -5,7 +5,7 @@ Folder management utilities for organizing actor projects.
 
 import os
 from pathlib import Path
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Dict, Any
 import re
 
 
@@ -153,7 +153,9 @@ class ActorFolderManager:
             "json": os.path.join(actor_folder, f"{normalized_name}_script_data.json"),
             "storyboard": os.path.join(actor_folder, f"{normalized_name}_storyboard.json"),
             "music_plan": os.path.join(actor_folder, f"{normalized_name}_music_plan.json"),
-            "cost_tracking": os.path.join(actor_folder, f"{normalized_name}_cost_tracking.json")
+            "cost_tracking": os.path.join(actor_folder, f"{normalized_name}_cost_tracking.json"),
+            "images_dir": os.path.join(actor_folder, "images"),
+            "image_metadata": os.path.join(actor_folder, f"{normalized_name}_image_metadata.json")
         }
     
     def get_latest_storyboard(self, actor_name: str) -> Optional[str]:
@@ -191,3 +193,49 @@ class ActorFolderManager:
             return music_plan_path
         
         return None
+    
+    def check_existing_images(self, actor_name: str) -> Dict[str, Any]:
+        """
+        Check for existing images in actor folder.
+        
+        Args:
+            actor_name: The actor's name
+            
+        Returns:
+            Dictionary with image counts and details
+        """
+        paths = self.get_script_paths(actor_name)
+        images_dir = paths['images_dir']
+        
+        result = {
+            "has_images": False,
+            "total_images": 0,
+            "shots_with_images": set(),
+            "image_files": []
+        }
+        
+        if os.path.exists(images_dir):
+            for filename in os.listdir(images_dir):
+                # Skip thumbnails directory
+                if filename == 'thumbnails':
+                    continue
+                    
+                if filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp')):
+                    result["image_files"].append(filename)
+                    result["total_images"] += 1
+                    
+                    # Extract shot number
+                    try:
+                        # Handle filenames like "1B.jpg", "12C.png"
+                        for i, char in enumerate(filename):
+                            if char.isalpha():
+                                shot_num = int(filename[:i])
+                                result["shots_with_images"].add(shot_num)
+                                break
+                    except:
+                        pass
+            
+            result["has_images"] = result["total_images"] > 0
+            result["shots_with_images"] = sorted(list(result["shots_with_images"]))
+        
+        return result

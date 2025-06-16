@@ -17,6 +17,7 @@ from storyboard_generator import StoryboardGenerator
 from music_plan_generator import MusicPlanGenerator
 from folder_manager import ActorFolderManager
 from cost_tracker import CostTracker, format_cost_summary
+from step3_image_search import proceed_to_step3
 
 # Load environment variables
 load_dotenv()
@@ -269,177 +270,180 @@ def proceed_to_step2(storyboard_generator, music_plan_generator, folder_manager,
         if action == 'use_existing':
             print(f"\n✓ Using existing storyboard")
             print(f"   Location: {existing_sb_path}")
-            print("\n🚀 Ready for Step 3 (coming soon...)")
-            return True
+            # Continue to music plan even with existing storyboard
         elif action == 'skip':
             print("\n⏭️  Skipping storyboard generation")
-            return True
-        
-        # Extract script content
-        script_content = storyboard_generator.extract_script_content(script_path)
-        
-        # Generate storyboard
-        result = storyboard_generator.generate_storyboard(script_content, actor_name)
-        
-        if result.get("success"):
-            print(f"✓ Storyboard generated successfully!")
-            print(f"  Shot count: {result['shot_count']} shots")
-            print(f"  Generation time: {result.get('generation_time', 'N/A')}s")
-            
-            # Save storyboard
+            # Continue to Step 3 without storyboard
             paths = folder_manager.get_script_paths(actor_name)
-            storyboard_path = paths['storyboard']
-            
-            storyboard_data = {
-                "actor_name": actor_name,
-                "storyboard": result['storyboard'],
-                "shot_count": result['shot_count'],
-                "generation_metadata": {
-                    "model": result['model_used'],
-                    "timestamp": result['timestamp'],
-                    "generation_time": result['generation_time'],
-                    "usage": result.get('usage', {}),
-                    "valid": result.get('valid', True),
-                    "validation_issues": result.get('validation_issues', [])
-                }
-            }
-            
-            with open(storyboard_path, 'w', encoding='utf-8') as f:
-                json.dump(storyboard_data, f, indent=2)
-            print(f"  Saved to: {storyboard_path}")
-            
-            # Show cost analysis
-            if result.get("usage"):
-                cost = storyboard_generator.estimate_cost(result)
-                usage = result["usage"]
-                print("\n💰 Storyboard Generation Cost:")
-                print(f"  Token Usage:")
-                print(f"    - Input tokens: {usage.get('input_tokens', 'N/A'):,}")
-                print(f"    - Output tokens: {usage.get('output_tokens', 'N/A'):,}")
-                if usage.get('reasoning_tokens'):
-                    print(f"    - Reasoning tokens: {usage.get('reasoning_tokens', 'N/A'):,}")
-                print(f"  Cost: {cost['total_cost_usd']}")
-                
-                # Track storyboard cost if tracker available
-                if cost_tracker:
-                    cost_tracker.add_entry(
-                        step="storyboard_generation",
-                        model=result.get('model_used', 'o3-2025-04-16'),
-                        cost=cost['total_cost'],
-                        usage_data=result.get('usage'),
-                        additional_info={
-                            "shot_count": result.get('shot_count'),
-                            "generation_time": result.get('generation_time'),
-                            "reasoning_effort": "high"
-                        }
-                    )
-            
-            # Show validation warnings if any
-            if result.get("valid") is False:
-                print("\n⚠️  Validation warnings:")
-                for issue in result.get("validation_issues", []):
-                    print(f"  - {issue}")
-            
-            # Show final cost summary if tracker available
-            if cost_tracker:
-                print("\n📊 Cost Tracking Summary:")
-                summary = format_cost_summary(cost_tracker)
-                for line in summary.split('\n'):
-                    print(f"  {line}")
-            
-            # Continue to music plan generation
-            print("\n🎵 Step 2B: Generating music plan...")
-            print("This may take 30-60 seconds...\n")
-            
-            # Check for existing music plan
-            mp_action, existing_mp_path = check_existing_music_plan(folder_manager, actor_name)
-            
-            if mp_action == 'use_existing':
-                print(f"\n✓ Using existing music plan")
-                print(f"   Location: {existing_mp_path}")
-            elif mp_action == 'skip':
-                print("\n⏭️  Skipping music plan generation")
-            else:
-                # Generate new music plan
-                # Extract script content
-                script_content = storyboard_generator.extract_script_content(script_path)
-                
-                # Generate music plan
-                mp_result = music_plan_generator.generate_music_plan(script_content, actor_name)
-                
-                if mp_result.get("success"):
-                    print(f"✓ Music plan generated successfully!")
-                    print(f"  Music prompts: {len(mp_result.get('music_prompts', []))}")
-                    print(f"  Generation time: {mp_result.get('generation_time', 'N/A')}s")
-                    
-                    # Save music plan
-                    paths = folder_manager.get_script_paths(actor_name)
-                    music_plan_path = paths['music_plan']
-                    
-                    music_plan_data = {
-                        "actor_name": actor_name,
-                        "music_prompts": mp_result['music_prompts'],
-                        "generation_metadata": {
-                            "model": mp_result['model_used'],
-                            "timestamp": mp_result['timestamp'],
-                            "generation_time": mp_result['generation_time'],
-                            "usage": mp_result.get('usage', {}),
-                            "valid": mp_result.get('valid', True),
-                            "validation_issues": mp_result.get('validation_issues', [])
-                        }
-                    }
-                    
-                    with open(music_plan_path, 'w', encoding='utf-8') as f:
-                        json.dump(music_plan_data, f, indent=2)
-                    print(f"  Saved to: {music_plan_path}")
-                    
-                    # Show cost analysis
-                    if mp_result.get("usage"):
-                        mp_cost = music_plan_generator.estimate_cost(mp_result)
-                        usage = mp_result["usage"]
-                        print("\n💰 Music Plan Generation Cost:")
-                        print(f"  Token Usage:")
-                        print(f"    - Input tokens: {usage.get('input_tokens', 'N/A'):,}")
-                        print(f"    - Output tokens: {usage.get('output_tokens', 'N/A'):,}")
-                        if usage.get('reasoning_tokens'):
-                            print(f"    - Reasoning tokens: {usage.get('reasoning_tokens', 'N/A'):,}")
-                        print(f"  Cost: {mp_cost['total_cost_usd']}")
-                        
-                        # Track music plan cost if tracker available
-                        if cost_tracker:
-                            cost_tracker.add_entry(
-                                step="music_plan_generation",
-                                model=mp_result.get('model_used', 'o3-2025-04-16'),
-                                cost=mp_cost['total_cost'],
-                                usage_data=mp_result.get('usage'),
-                                additional_info={
-                                    "prompt_count": len(mp_result.get('music_prompts', [])),
-                                    "generation_time": mp_result.get('generation_time'),
-                                    "reasoning_effort": "high"
-                                }
-                            )
-                    
-                    # Show validation warnings if any
-                    if mp_result.get("valid") is False:
-                        print("\n⚠️  Validation warnings:")
-                        for issue in mp_result.get("validation_issues", []):
-                            print(f"  - {issue}")
-                else:
-                    print(f"❌ Failed to generate music plan: {mp_result.get('error', 'Unknown error')}")
-            
-            # Show final cost summary if tracker available
-            if cost_tracker:
-                print("\n📊 Final Cost Tracking Summary:")
-                summary = format_cost_summary(cost_tracker)
-                for line in summary.split('\n'):
-                    print(f"  {line}")
-            
-            print("\n🚀 Ready for Step 3 (coming soon...)")
+            proceed_to_step3(folder_manager, actor_name, None, cost_tracker)
             return True
-            
         else:
-            print(f"❌ Failed to generate storyboard: {result.get('error', 'Unknown error')}")
-            return False
+            # Extract script content
+            script_content = storyboard_generator.extract_script_content(script_path)
+            
+            # Generate storyboard
+            result = storyboard_generator.generate_storyboard(script_content, actor_name)
+            
+            if result.get("success"):
+                print(f"✓ Storyboard generated successfully!")
+                print(f"  Shot count: {result['shot_count']} shots")
+                print(f"  Generation time: {result.get('generation_time', 'N/A')}s")
+            
+                # Save storyboard
+                paths = folder_manager.get_script_paths(actor_name)
+                storyboard_path = paths['storyboard']
+            
+                storyboard_data = {
+                    "actor_name": actor_name,
+                    "storyboard": result['storyboard'],
+                    "shot_count": result['shot_count'],
+                    "generation_metadata": {
+                        "model": result['model_used'],
+                        "timestamp": result['timestamp'],
+                        "generation_time": result['generation_time'],
+                        "usage": result.get('usage', {}),
+                        "valid": result.get('valid', True),
+                        "validation_issues": result.get('validation_issues', [])
+                    }
+                }
+            
+                with open(storyboard_path, 'w', encoding='utf-8') as f:
+                    json.dump(storyboard_data, f, indent=2)
+                print(f"  Saved to: {storyboard_path}")
+            
+                # Show cost analysis
+                if result.get("usage"):
+                    cost = storyboard_generator.estimate_cost(result)
+                    usage = result["usage"]
+                    print("\n💰 Storyboard Generation Cost:")
+                    print(f"  Token Usage:")
+                    print(f"    - Input tokens: {usage.get('input_tokens', 'N/A'):,}")
+                    print(f"    - Output tokens: {usage.get('output_tokens', 'N/A'):,}")
+                    if usage.get('reasoning_tokens'):
+                        print(f"    - Reasoning tokens: {usage.get('reasoning_tokens', 'N/A'):,}")
+                    print(f"  Cost: {cost['total_cost_usd']}")
+                
+                    # Track storyboard cost if tracker available
+                    if cost_tracker:
+                        cost_tracker.add_entry(
+                            step="storyboard_generation",
+                            model=result.get('model_used', 'o3-2025-04-16'),
+                            cost=cost['total_cost'],
+                            usage_data=result.get('usage'),
+                            additional_info={
+                                "shot_count": result.get('shot_count'),
+                                "generation_time": result.get('generation_time'),
+                                "reasoning_effort": "high"
+                            }
+                        )
+            
+                # Show validation warnings if any
+                if result.get("valid") is False:
+                    print("\n⚠️  Validation warnings:")
+                    for issue in result.get("validation_issues", []):
+                        print(f"  - {issue}")
+            else:
+                print(f"❌ Failed to generate storyboard: {result.get('error', 'Unknown error')}")
+                return False
+        
+        # At this point we either have a new storyboard or are using an existing one
+        # Continue to music plan generation
+        print("\n🎵 Step 2B: Generating music plan...")
+        print("This may take 30-60 seconds...\n")
+        
+        # Check for existing music plan
+        mp_action, existing_mp_path = check_existing_music_plan(folder_manager, actor_name)
+            
+        if mp_action == 'use_existing':
+            print(f"\n✓ Using existing music plan")
+            print(f"   Location: {existing_mp_path}")
+        elif mp_action == 'skip':
+            print("\n⏭️  Skipping music plan generation")
+        else:
+            # Generate new music plan
+            # Extract script content
+            script_content = storyboard_generator.extract_script_content(script_path)
+            
+            # Generate music plan
+            mp_result = music_plan_generator.generate_music_plan(script_content, actor_name)
+                
+            if mp_result.get("success"):
+                print(f"✓ Music plan generated successfully!")
+                print(f"  Music prompts: {len(mp_result.get('music_prompts', []))}")
+                print(f"  Generation time: {mp_result.get('generation_time', 'N/A')}s")
+                    
+                # Save music plan
+                paths = folder_manager.get_script_paths(actor_name)
+                music_plan_path = paths['music_plan']
+                    
+                music_plan_data = {
+                    "actor_name": actor_name,
+                    "music_prompts": mp_result['music_prompts'],
+                    "generation_metadata": {
+                        "model": mp_result['model_used'],
+                        "timestamp": mp_result['timestamp'],
+                        "generation_time": mp_result['generation_time'],
+                        "usage": mp_result.get('usage', {}),
+                        "valid": mp_result.get('valid', True),
+                        "validation_issues": mp_result.get('validation_issues', [])
+                    }
+                }
+                    
+                with open(music_plan_path, 'w', encoding='utf-8') as f:
+                    json.dump(music_plan_data, f, indent=2)
+                print(f"  Saved to: {music_plan_path}")
+                    
+                # Show cost analysis
+                if mp_result.get("usage"):
+                    mp_cost = music_plan_generator.estimate_cost(mp_result)
+                    usage = mp_result["usage"]
+                    print("\n💰 Music Plan Generation Cost:")
+                    print(f"  Token Usage:")
+                    print(f"    - Input tokens: {usage.get('input_tokens', 'N/A'):,}")
+                    print(f"    - Output tokens: {usage.get('output_tokens', 'N/A'):,}")
+                    if usage.get('reasoning_tokens'):
+                        print(f"    - Reasoning tokens: {usage.get('reasoning_tokens', 'N/A'):,}")
+                    print(f"  Cost: {mp_cost['total_cost_usd']}")
+                        
+                    # Track music plan cost if tracker available
+                    if cost_tracker:
+                        cost_tracker.add_entry(
+                            step="music_plan_generation",
+                            model=mp_result.get('model_used', 'o3-2025-04-16'),
+                            cost=mp_cost['total_cost'],
+                            usage_data=mp_result.get('usage'),
+                            additional_info={
+                                "prompt_count": len(mp_result.get('music_prompts', [])),
+                                "generation_time": mp_result.get('generation_time'),
+                                "reasoning_effort": "high"
+                            }
+                        )
+                    
+                # Show validation warnings if any
+                if mp_result.get("valid") is False:
+                    print("\n⚠️  Validation warnings:")
+                    for issue in mp_result.get("validation_issues", []):
+                        print(f"  - {issue}")
+            else:
+                print(f"❌ Failed to generate music plan: {mp_result.get('error', 'Unknown error')}")
+        
+        # Show final cost summary if tracker available
+        if cost_tracker:
+            print("\n📊 Final Cost Tracking Summary:")
+            summary = format_cost_summary(cost_tracker)
+            for line in summary.split('\n'):
+                print(f"  {line}")
+        
+        # Continue to Step 3: Image Search
+        paths = folder_manager.get_script_paths(actor_name)
+        storyboard_path = paths['storyboard']
+        if os.path.exists(storyboard_path):
+            proceed_to_step3(folder_manager, actor_name, storyboard_path, cost_tracker)
+        else:
+            print("\n⚠️  No storyboard found. Skipping image search.")
+        
+        print("\n🚀 Ready for Step 4 (AI image generation - coming soon...)")
+        return True
             
     except Exception as e:
         print(f"❌ Error in Step 2: {e}")

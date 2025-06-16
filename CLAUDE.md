@@ -39,7 +39,9 @@ This is the JGL Assistant project - an AI-powered biography script generator for
   - `[actor]_PHONETIC_script.txt` - TTS-ready version
   - `[actor]_storyboard.json` - 45+ shot breakdown
   - `[actor]_music_plan.json` - 3 AI music prompts
+  - `[actor]_image_metadata.json` - Downloaded image info
   - `[actor]_cost_tracking.json` - API cost tracking
+  - `images/` - Downloaded images (1B.jpg, 1C.png, etc.)
 
 ## Testing Approach
 - Test with short actor names first (saves tokens)
@@ -53,16 +55,19 @@ This is the JGL Assistant project - an AI-powered biography script generator for
 3. **Model confusion**: o4-mini vs gpt-4o-mini (use o4-mini)
 4. **Case sensitivity**: Use folder_manager.normalize_actor_name()
 5. **Script rejection**: Now accepts any script with HOOK/BIO sections
+6. **Image download failures**: Enhanced searcher retries with next results
+7. **Watermarked images**: Avoids known watermark domains (Getty, Shutterstock)
 
-## Next Steps (Phase 2)
+## Next Steps (Phase 2-3)
 The project has implemented:
 - ✓ Script chunking (3-10 second segments) via storyboard
 - ✓ AI prompt generation for images/videos
 - ✓ Music description generation
+- ✓ Google Image search and download (Step 3)
 - ✓ All saved in actor-specific folders
 
-Ready for Phase 3:
-- Image generation (Bing/Google API)
+Ready for Phase 4:
+- AI image generation (FLUX/SDXL)
 - Video clip searching
 - Final assembly
 
@@ -72,3 +77,8 @@ Ready for Phase 3:
 - Folder system is mandatory for all new features
 - Maintain backwards compatibility with existing scripts
 - Cost tracking JSON persists all operations per actor
+- Google API: 100 free searches/day, track usage in .google_api_usage.json
+- Images named with shot# + letter (1B, 1C, etc) - A reserved for AI images
+- Enhanced image searcher: validates, deduplicates, retries, generates thumbnails
+- Downloads 10 images per shot using threading for speed
+- Tracks failed domains to avoid problematic sources

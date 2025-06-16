@@ -41,9 +41,13 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up your OpenAI API key:
+4. Set up your API keys:
    - Copy `.env.example` to `.env`
-   - Add your API key: `OPENAI_API_KEY=your-api-key-here`
+   - Add your OpenAI API key: `OPENAI_API_KEY=your-api-key-here`
+   - For Step 3 (Image Search), add Google API credentials:
+     - `GOOGLE_API_KEY=your-google-api-key`
+     - `GOOGLE_SEARCH_ENGINE_ID=your-search-engine-id`
+     - See "Google API Setup" section below for details
 
 ## Usage
 
@@ -55,15 +59,44 @@ python main.py
 The app will:
 1. Ask for an actor's name
 2. Check for existing scripts and offer options:
-   - Use existing script (proceed to Step 2 - coming soon)
+   - Use existing script (proceed to Step 2)
    - Generate new script (overwrites existing)
    - Cancel
 3. Generate a biography script using o3 model with high reasoning
 4. Generate a phonetic version for TTS using o4-mini
-5. Save both versions in actor-specific folder: `output/actors/[actor_name]/`
-6. Display actual token usage and costs from OpenAI API
+5. **Step 2**: Generate storyboard (45+ shots) and music plan (3 AI prompts)
+6. **Step 3**: Search and download Google Images for each shot
+7. Save everything in actor-specific folder: `output/actors/[actor_name]/`
+8. Display actual token usage and costs from OpenAI API
 
 Type 'quit' to exit the application.
+
+## Google API Setup
+
+For Step 3 (Image Search), you need Google Custom Search API credentials:
+
+### 1. Get Google API Key:
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create or select a project
+3. Enable "Custom Search API"
+4. Go to "Credentials" → "Create Credentials" → "API Key"
+5. Copy the API key
+
+### 2. Get Search Engine ID:
+1. Go to [Programmable Search Engine](https://programmablesearchengine.google.com/)
+2. Click "Add" to create a new search engine
+3. Configure:
+   - Enable "Image search"
+   - Enable "Search the entire web"
+4. Copy the "Search engine ID"
+
+### 3. Add to .env:
+```
+GOOGLE_API_KEY=your_api_key_here
+GOOGLE_SEARCH_ENGINE_ID=your_search_engine_id_here
+```
+
+**Note**: Google provides 100 free searches per day. Additional searches cost $5 per 1000 queries.
 
 ## Script Format
 
@@ -98,7 +131,13 @@ JGL_Assistant/
 │           ├── [actor]_script.txt           # Original script
 │           ├── [actor]_PHONETIC_script.txt  # Phonetic version
 │           ├── [actor]_script_data.json     # Generation metadata
-│           └── [actor]_step2_data.json      # Future video planning
+│           ├── [actor]_storyboard.json      # 45+ shot breakdown
+│           ├── [actor]_music_plan.json      # 3 AI music prompts
+│           ├── [actor]_image_metadata.json  # Downloaded image info
+│           ├── [actor]_cost_tracking.json   # API cost tracking
+│           └── images/                      # Downloaded images
+│               ├── 1B.jpg, 1C.png, ...     # Shot 1 images
+│               └── 2B.jpg, 2C.png, ...     # Shot 2 images
 ├── dev/                         # Development files
 │   └── llm/                    # Logs and JSON backups
 └── docs/                       # Documentation
@@ -107,15 +146,18 @@ JGL_Assistant/
 
 ## Cost
 
-Actual costs per script (with high reasoning effort):
-- Original script (o3 model): $0.013-$0.016
-  - Input tokens: ~2,700
-  - Output tokens: ~1,000-3,000
-  - Reasoning tokens: ~180% of output tokens
-- Phonetic script (o4-mini): ~$0.001
-- **Total: $0.014-$0.017 per complete script set**
+Actual costs per complete video project (with high reasoning effort):
+- **Step 1**: Script Generation
+  - Original script (o3): $0.013-$0.036
+  - Phonetic script (o4-mini): ~$0.001
+- **Step 2**: Video Planning
+  - Storyboard (o3): $0.10-$0.21
+  - Music plan (o3): $0.01-$0.02
+- **Step 3**: Image Search
+  - Google API: FREE (first 100 searches/day)
+- **Total: $0.12-$0.27 per complete project**
 
-Generation time: 47-177 seconds depending on complexity
+Generation time: 5-10 minutes total
 
 ## License
 
